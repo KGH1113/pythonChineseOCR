@@ -27,12 +27,14 @@ class OCRProgram:
         main_frame = tk.Frame(self.root)
         main_frame.pack()
 
-        self.file_frame = tk.Frame(main_frame, width=500, height=400, relief="solid", borderwidth=2)
+        self.file_frame = tk.Frame(main_frame, width=500, height=500, relief="solid", borderwidth=2)
         self.file_frame.pack(pady=20)
 
-        file_label = tk.Label(self.file_frame, text="+", font=("Helvetica", 200), cursor="hand2")
-        file_label.pack(pady=50)
+        file_label = tk.Label(self.file_frame, width=3, height=0, text="+", font=("Helvetica", 200), cursor="hand2")
+        file_label.pack()
         file_label.bind("<Button-1>", self.open_file_dialog)
+        labelForFileBtn = tk.Label(self.file_frame, width=0, height=0, text="Select the file.", font=("Helvetica", 10))
+        labelForFileBtn.pack()
 
     def open_file_dialog(self, event):
         self.file_path = filedialog.askopenfilename(title="Select a file")
@@ -59,7 +61,7 @@ class OCRProgram:
     def update_loading_bar(self):
         current_width = self.loading_bar.winfo_width()
         if current_width < 500:
-            self.loading_bar.config(width=current_width + 10)
+            self.loading_bar.config(width=current_width + 30)
             self.root.after(100, lambda: self.update_loading_bar())
         else:
             self.load_result_page()
@@ -75,9 +77,8 @@ class OCRProgram:
         result_label = tk.Label(result_frame, text="OCR Result:\n\n{0}".format(self.extract(self.file_path)), font=("Helvetica", 20))
         result_label.pack()
 
-        goto_home_label = tk.Button(result_frame, text="Main Page")
-        goto_home_label.bind("<Button-1>", self.create_file_selection)
-        goto_home_label.pack()
+        self.button_restart = tk.Button(self.root, text="Restart Program", command=self.restart_program)
+        self.button_restart.pack()
 
     def extract(self, fileLocation):
         # TESSDATA_PREFIX environment var
@@ -95,7 +96,17 @@ class OCRProgram:
         text = pytesseract.image_to_string(image, lang='chi_sim')
 
         print(text)
+
+        with open("./output.txt", "a", encoding='utf-8') as outputFile:
+            outputFile.write("\n\n--Data--\n  File Path: {0}\n  Output Result:\n'''\n{1}\n'''\n".format(fileLocation, text))
+
         return text
+    
+    def restart_program(self):
+        self.root.destroy()
+        new_root = tk.Tk()
+        app = OCRProgram(new_root)
+        new_root.mainloop()
 
 def main():
     root = tk.Tk()
